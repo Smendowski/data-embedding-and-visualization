@@ -1,3 +1,12 @@
+# Data
+datasets/
+datasets_with_labels/
+labels/
+graphs
+
+# VisKit
+viskit/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
