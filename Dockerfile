@@ -20,6 +20,7 @@ COPY graphs /opt/graphs
 RUN mkdir -p /opt/viskit
 COPY viskit /opt/viskit/
 
+WORKDIR ./opt/viskit
 # Initialize submodules
 RUN git submodule init && \
     git submodule update
