@@ -1,7 +1,7 @@
 ```bash
 git clone https://gitlab.com/bminch/viskit.git
 docker build -t viskit -f Dockerfile .
-dockr run -it viskit /bin/bash
+docker run -it viskit /bin/bash
 ```
 
 ```bash
