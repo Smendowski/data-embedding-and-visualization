@@ -1,11 +1,12 @@
 import numpy as np
+import pandas as pd
 from scipy.spatial import distance_matrix
 from .metric import Metric, measure_time
 
 
 class DistanceMatrixBasedMetric(Metric):
 
-    def __init__(self, df_data, df_labels):
+    def __init__(self, df_data: pd.DataFrame, df_labels: pd.Series):
         self._df_data = df_data
         self._df_labels = df_labels
         self._labels = self._get_labels()
@@ -17,6 +18,7 @@ class DistanceMatrixBasedMetric(Metric):
             self, matrix_of_distances: np.ndarray) -> np.float32:
         numerator = matrix_of_distances.sum() / 2
         denominator = np.count_nonzero(matrix_of_distances)
+
         return numerator / denominator
 
     @measure_time
