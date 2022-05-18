@@ -23,12 +23,20 @@ class DistanceMatrixAndKMeansBasedMetric(Metric):
 
         return points
 
+    def _calculate_mean_distance(
+            self, matrix_of_distances: np.ndarray) -> np.float32:
+        numerator = matrix_of_distances.sum() / 2
+        denominator = np.count_nonzero(matrix_of_distances)
+
+        return numerator / denominator
+
     def _get_mean_intra_class_distances(self, points) -> np.ndarray:
         mean_intra_class_distances = []
         for idx, _ in enumerate(points):
             d_matrix = distance_matrix(points[idx], points[idx])
-            mean_distance = d_matrix.sum()/np.count_nonzero(d_matrix)
-            mean_intra_class_distances.append(mean_distance)
+            mean_intra_class_distances.append(
+                self._calculate_mean_distance(d_matrix)
+            )
 
         return mean_intra_class_distances
 
@@ -63,9 +71,9 @@ class DistanceMatrixAndKMeansBasedMetric(Metric):
 
         intra_to_inter_relations = []
         for i in range(inter_class_distances.shape[0]):
-
             intra_to_inter_relations.append(
-                intra_class_distances[i] / inter_class_distances[i].mean()
+                intra_class_distances[i] /
+                self._calculate_mean_distance(inter_class_distances[i])
             )
 
         return np.array(intra_to_inter_relations).mean()
