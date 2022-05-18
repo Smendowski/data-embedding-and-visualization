@@ -60,7 +60,7 @@ class DistanceMatrixAndKMeansBasedMetric(Metric):
         ].reshape(inter_class_distances.shape[0], -1)
 
     @measure_time
-    def calculate_metric(self) -> np.float32:
+    def calculate(self) -> np.float32:
         points = self._get_points_from_each_class()
         intra_class_distances = \
             self._get_mean_intra_class_distances(points)

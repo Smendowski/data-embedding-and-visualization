@@ -23,5 +23,5 @@ class Metric(ABC):
         pass
 
     @abstractmethod
-    def calculate_metric(self, df_data, df_labels) -> np.float32:
+    def calculate(self, df_data, df_labels) -> np.float32:
         pass

@@ -26,9 +26,62 @@ cd /opt/viskit/viskit_offline
 ./viskit_offline {path_to_dataset_file} {path_to_labels_file} {path_to_graph_file} {path_to_visualization}
 ```
 
-## Examples
+### Examples
 ```bash
 cd /opt/viskit/viskit_offline
 ./viskit_offline "./datasets/mnist_data.csv" "./labels/mnist_labels.csv" "./graphs/mnist.bin" ./visualization.txt 2500 2 1 1 0 0 0 "force-directed"
 ./viskit_offline "./datasets/mnist_data.csv" "./labels/mnist_labels.csv" "./graphs/mnist.bin" ./visualization.txt
+```
+
+## Metrics
+Metrics are used to asses and compare quality of dimensionality reduction techniques. Two major aspects are worth to evaluate - the local and global quality of separation. 
+
+Currently supported metrics:
+1. `Distance matrix based metric`
+
+```python
+from sklearn.manifold import TSNE
+from metrics.distance_matrix_based_metric import DistanceMatrixBasedMetric
+
+
+df_mnist = pd.read_csv(
+    './datasets_with_labels/mnist.csv', header=None, nrows=5000
+)
+
+df_mnist_data = df_mnist.iloc[:, :-1]
+df_mnist_labels = df_mnist.iloc[:, -1]
+
+tsne_embedding = TSNE(n_components=2).fit_transform(df_mnist_data.values)
+df_tsne_embedding = pd.DataFrame(data=tsne_embedding)
+
+metric = DistanceMatrixBasedMetric(
+    df_tsne_embedding, df_labels
+)
+
+print(metric.calculate())
+```
+
+2. `KMeans extension of distance matrix based metric` <br>
+Calculation of distances between different classes is optimized by an approximation that mean distances between points from different classes are same as distances between centroids from KMeans.
+
+```python
+from sklearn.manifold import TSNE
+from metrics.distance_matrix_and_kmeans_based_metric import DistanceMatrixAndKMeansBasedMetric
+
+
+df_mnist = pd.read_csv(
+    './datasets_with_labels/mnist.csv', header=None, nrows=5000
+)
+
+df_mnist_data = df_mnist.iloc[:, :-1]
+df_mnist_labels = df_mnist.iloc[:, -1]
+
+tsne_embedding = TSNE(n_components=2).fit_transform(df_mnist_data.values)
+df_tsne_embedding = pd.DataFrame(data=tsne_embedding)
+
+metric = DistanceMatrixAndKMeansBasedMetric(
+    df_tsne_embedding, df_labels
+)
+
+print(metric.calculate())
 ```

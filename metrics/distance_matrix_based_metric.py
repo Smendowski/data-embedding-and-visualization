@@ -22,7 +22,7 @@ class DistanceMatrixBasedMetric(Metric):
         return numerator / denominator
 
     @measure_time
-    def calculate_metric(self) -> np.float32:
+    def calculate(self) -> np.float32:
         labels = self._get_labels()
         dist_inner_mean = dist_outter_mean = 0
         for label in labels:
