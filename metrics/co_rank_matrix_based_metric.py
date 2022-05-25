@@ -143,7 +143,41 @@ class CoRankMatrixBasedMetric(Metric):
 
         return numerator / denominator
 
-    @staticmethod
+    def _calculate_area_under_rnx_curve(self):
+        """
+        [AUC - Area Under RNX Curve]
+
+        AUC of 1 indicates perfect neighborhood preservation.
+        AUC of 0 indicates no neighborhood preservation due to random
+        results.
+
+        [Source]
+        Lee, J. A., Peluffo-Ordo'nez, D. H., & Verleysen, M. (2015).
+        Multi-scale similarities in stochastic neighbour embedding:
+        Reducing dimensionality while preserving both local and global
+        structure.
+
+        [Reference to the implementation in R]
+        https://github.com/jlmelville/quadra/blob/master/R/neighbor.R
+        """
+        n = len(self._co_rank_matrix)
+        numerator = 0
+        denominator = 0
+        qnx_crm_sum = 0
+        for k in range(1, n-2):
+            qnx_crm_sum += np.sum(
+                np.sum(self._co_rank_matrix[(k-1), :k]) +
+                np.sum(self._co_rank_matrix[:k, (k-1)]) -
+                self._co_rank_matrix[(k-1), (k-1)]
+            )
+
+            qnx_crm = qnx_crm_sum / (k * len(self._co_rank_matrix))
+            rnx_crm = ((qnx_crm * (n - 1)) - k) / (n - 1 - k)
+            numerator += rnx_crm / k
+            denominator += 1 / k
+
+        return numerator / denominator
+
     def _calculate_qnx_and_rnx_values(self, k: int):
         qnx, rnx = [], []
         for k_val in range(k):
@@ -158,10 +192,13 @@ class CoRankMatrixBasedMetric(Metric):
             self._compute_co_rank_matrix(self._df_data, self._df_embedding)
 
         self._qnx, self._rnx = self._calculate_qnx_and_rnx_values(
-            min(10_000, self._df_data.shape[0]),
+            min(10_000, self._df_data.shape[0])
         )
+
+        self._area_under_rnx = self._calculate_area_under_rnx_curve()
 
         return json.dumps({
             'QNX': self._qnx,
-            'RNX': self._rnx
+            'RNX': self._rnx,
+            'AREA_UNDER_RNX_CURVE': self._area_under_rnx
         })
