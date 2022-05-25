@@ -1,5 +1,7 @@
+import json
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 import numba
 from joblib import Parallel, delayed
 from sklearn.metrics import pairwise_distances_chunked
@@ -85,6 +87,81 @@ class CoRankMatrixBasedMetric(Metric):
 
         return co_rank_matrix[1:, 1:].T
 
+    def _visualize_co_rank_matrix(self) -> None:
+        plt.matshow(np.log(self._co_rank_matrix+1e-2))
+
+    def _calculate_average_normalized_agreement(
+            self, k: np.int) -> np.float32:
+        """
+        [QNX - Average Normalized Agreement Between K-ary Neighborhoods]
+
+        QNX measure the quality of data embedding technique in terms of
+        how well it preserves the local neighborhood around observations.
+        For a given value of k, the k closest points for each sample are
+        retrieved. QXN is the number of shared neighbors between original
+        dimensionality and the reduced one, additionally normalized by k.
+        Simply, QNX yields values in the range from 0 to 1. 1 means that
+        the neighborhoods are supremely preserved. QNX value is close to 0
+        when there is no neighborhood preservation.
+
+        [Source]
+        Lee, J. A., & Verleysen, M. (2009).
+        Quality assessment of dimensionality reduction: Rank-based criteria.
+
+        [Reference to the implementation in R]
+        https://github.com/jlmelville/quadra/blob/master/R/neighbor.R
+        """
+        numerator = np.sum(self._co_rank_matrix[:k, :k])
+        denominator = k * len(self._co_rank_matrix)
+
+        return numerator / denominator
+
+    def _calculate_rescaled_agreement(self, k: np.int) -> np.float32:
+        """
+        [RNX - Rescaled Agreement Between K-ary Neighborhoods]
+
+        RXN is the scaled version of QNX. RNX measures the quality of
+        data embedding technique in terms of the shared number of k-NN.
+        RNX yields values in the range from 0 to 1. 1 means that the
+        neighborhoods are supremely preserved. On the contrary, 0 means
+        that the neighborhoods are not preserved and the embedding resemble
+        the random one.
+
+        [Source]
+        Lee, J. A., Renard, E., Bernard, G., Dupont, P., & Verleysen, M.
+        (2013). Type 1 and 2 mixtures of Kullback-Leibler divergences as
+        cost functions in dimensionality reduction based on similarity
+        preservation.
+
+        [Reference to the implementation in R]
+        https://github.com/jlmelville/quadra/blob/master/R/neighbor.R
+        """
+        n = len(self._co_rank_matrix)
+        numerator = \
+            (self._calculate_average_normalized_agreement(k) * (n - 1)) - k
+        denominator = n - 1 - k
+
+        return numerator / denominator
+
+    @staticmethod
+    def _calculate_qnx_and_rnx_values(self, k: int):
+        qnx, rnx = [], []
+        for k_val in range(k):
+            qnx.append(self._calculate_average_normalized_agreement(k=k_val))
+            rnx.append(self._calculate_rescaled_agreement(k=k_val))
+
+        return qnx, rnx
+
     @measure_time
-    def calculate(self):
-        return self._compute_co_rank_matrix(self._df_data, self._df_embedding)
+    def calculate(self) -> dict:
+        self._co_rank_matrix = \
+            self._compute_co_rank_matrix(self._df_data, self._df_embedding)
+
+        self._qnx, self._rnx = self._calculate_qnx_and_rnx_values(
+            min(10_000, self._df_data.shape[0]),
+        )
+
+        return json.dumps({
+            'QNX': self._qnx,
+            'RNX': self._rnx
+        })
