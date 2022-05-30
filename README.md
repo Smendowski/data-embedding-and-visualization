@@ -85,3 +85,52 @@ metric = DistanceMatrixAndKMeansBasedMetric(
 
 print(metric.calculate())
 ```
+
+3. `Thrustworthiness based metric` <br>
+```python
+from sklearn.manifold import TSNE
+from metrics.trustworthiness_based_metric import TrustworthinessBasedMetric
+
+df_mnist = pd.read_csv(
+    './datasets_with_labels/mnist.csv', header=None, nrows=5000
+)
+
+df_mnist_data = df_mnist.iloc[:, :-1]
+
+tsne_embedding = TSNE(n_components=2).fit_transform(df_mnist_data.values)
+df_tsne_embedding = pd.DataFrame(data=tsne_embedding)
+
+metric = TrustworthinessBasedMetric(
+    df_mnist_data, df_tsne_embedding
+)
+
+print(metric.calculate())
+```
+Result:
+
+```python
+{
+    'euclidean': {
+        '5':   0.990,
+        '10':  0.982,
+        '15':  0.976,
+        '30':  0.964,
+        '50':  0.953,
+        '100': 0.933,
+        '150': 0.918,
+        '300': 0.873,
+        '500': 0.822
+    },
+    'cosine': {
+        '5':   0.989,
+        '10':  0.982,
+        '15':  0.978,
+        '30':  0.968,
+        '50':  0.960,
+        '100': 0.945,
+        '150': 0.933,
+        '300': 0.899,
+        '500': 0.854
+    }
+}
+```
