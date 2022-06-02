@@ -1,5 +1,7 @@
 import numba
 import random
+import numpy as np
+import matplotlib.pyplot as plt
 
 from scipy.spatial.distance import squareform, pdist
 from sklearn.model_selection import train_test_split

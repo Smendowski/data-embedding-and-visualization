@@ -6,24 +6,14 @@ from sklearn.manifold import TSNE
 from sklearn.metrics.pairwise import euclidean_distances
 
 
-class EmbeddingNotSupportedError(Exception):
-    """Custom error raised when provided embedding neame is not supported"""
-
-
 class SpearmanCorrelationBasedMetric(Metric):
 
     def __init__(self, df_data: pd.DataFrame, df_labels: pd.Series,
-                 emb_name: str):
+                 df_embedding: pd.DataFrame):
         self._df_data = df_data
         self._df_labels = df_labels
+        self._df_embedding = df_embedding
         self._labels = self._get_labels()
-        self._emb_name = self._validate_embedding_name(emb_name)
-
-    def _validate_embedding_name(self, emb_name: str):
-        if emb_name in ["t-SNE", "UMAP", "IVHD"]:
-            return emb_name
-        else:
-            raise EmbeddingNotSupportedError(f"{emb_name} is not supported!")
 
     def _get_labels(self) -> list:
         return list(set(self._df_labels.unique()))
@@ -43,14 +33,9 @@ class SpearmanCorrelationBasedMetric(Metric):
                 self._df_data.iloc[target_classes_indices[target_class], :]
             df_target_values = df_target.values
 
-            if self._emb_name == "t-SNE":
-                tsne_emb = TSNE(
-                    n_components=2, perplexity=42
-                ).fit_transform(df_target_values)
-            elif self._emb_name == "UMAP":
-                raise NotImplementedError
-            elif self._emb_name == "IVHD":
-                raise NotImplementedError
+            df_target_emb = \
+                self._df_embedding.iloc[target_classes_indices[target_class], :]
+            df_target_emb_values = df_target_emb.values
 
             dist_original = np.square(
                 euclidean_distances(
@@ -58,13 +43,13 @@ class SpearmanCorrelationBasedMetric(Metric):
                 )
             ).flatten()
 
-            dist_tsne = np.square(
+            dist_emb = np.square(
                 euclidean_distances(
-                    tsne_emb, tsne_emb
+                    df_target_emb_values, df_target_emb_values
                 )
             ).flatten()
 
-            coef_tsne, p_tsne = spearmanr(dist_original, dist_tsne)
-            coefficients.append(coef_tsne)
+            coef_emb, p_emb = spearmanr(dist_original, dist_emb)
+            coefficients.append(coef_emb)
 
         return np.mean(coefficients)
