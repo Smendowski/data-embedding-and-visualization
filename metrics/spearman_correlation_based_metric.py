@@ -52,4 +52,10 @@ class SpearmanCorrelationBasedMetric(Metric):
             coef_emb, p_emb = spearmanr(dist_original, dist_emb)
             coefficients.append(coef_emb)
 
-        return np.mean(coefficients)
+        if np.nan in coefficients:
+            coefficients = np.array(coefficients)
+            return np.mean(
+                coefficients[np.logical_not(np.isnan(coefficients))]
+            )
+        else:
+            return np.mean(coefficients)
