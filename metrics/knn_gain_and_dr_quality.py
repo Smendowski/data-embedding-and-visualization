@@ -257,6 +257,8 @@ def viz_qa(
             tit
         ),
         dpi=fig.dpi,
+        transparent=True,
+        facecolor='w'
     )
 
 
