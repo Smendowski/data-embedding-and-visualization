@@ -1,11 +1,29 @@
+## 1. Introduction
+Visualization makes it easier to understand and notice dependencies in the high dimensionality data
+that are not trivial to capture and perceive. It is an inseparable, far-reaching, and effectual concept
+of data analysis or its initial recognition, but also an autonomous tool and dextrous field of machine
+learning. Visualization allows checking whether there are groups of similar observations forming clusters
+and finally gain more priceless intuition and understanding about data. In the case of multi and highdimensional
+ones, it is necessary to reduce their dimensions to at most three. The relationships in
+data are often non-linear, which rules out methods like PCA regarding separation quality.
+Therefore, it is required to use Manifold Learning techniques to discover the surface (manifold) on which
+the data is distracted and make reasonable projections into a space with the desired dimensionality. This project aims to analyze and visualize the MINST, 20 News Groups, and RCV Reuters datasets
+using methods such as t-SNE, UMAP, ISOMAP, PaCMAP and IVHD. Therefore, the particular motivation
+is to show the concept of high-dimensional data visualization, assess multiple data embedding
+techniques, and highlight potential comparative criteria of data separation quality.
+
+
+## 2. VISKIT
+### 1. Configuration and Setup
+[Viskit Repository and README](https://gitlab.com/bminch/viskit)
 ```bash
 git clone https://gitlab.com/bminch/viskit.git
 docker build -t viskit -f Dockerfile .
 docker run -it viskit /bin/bash
 ```
 
-## Download graphs
-Graphs *.bin files required by VisKit can be downloaded either manually or automatically.
+### 2. Graphs
+Graphs are required by VisKit. For this project, they can be downloaded either manually or automatically.
 ```bash
 source /utils/download_graphs.sh
 ```
@@ -17,120 +35,37 @@ Graphs location on Google Drive: <br>
 [tng_cosine.bin](https://drive.google.com/file/d/1j3O0EIZE3A-eNNy08gFGUK5h86djlOJ-/view?usp=sharing) <br>
 [tng_euclidean.bin](https://drive.google.com/file/d/1KDgp8hnX8hTN4M9APWzOVOWm2qi-aVDl/view?usp=sharing) <br>
 
-
-## Viskit usage
-You need to provide dataset (without labels; <b>path_to_dataset_file</b>), labels (<b>path_to_labels_file</b>) as separate csv files and graph file (<b>{path_to_graph_file}</b>). Visualization text file will be saved to specified path (<b>path_to_visualization</b>).
+### 3. Usage documentation
+Provide dataset (without labels; <b>path_to_dataset_file</b>), labels (<b>path_to_labels_file</b>) as separate csv files and graph file (<b>{path_to_graph_file}</b>). Visualization text file will be saved to specified path (<b>path_to_visualization</b>).
 ```bash
 cd /opt/viskit/viskit_offline
 ./viskit_offline {path_to_dataset_file} {path_to_labels_file} {path_to_graph_file} {path_to_visualization} 2500 2 1 1 0 0 0 "force-directed"
 ./viskit_offline {path_to_dataset_file} {path_to_labels_file} {path_to_graph_file} {path_to_visualization}
 ```
 
-### Examples
+### 4. Usage examples
 ```bash
 cd /opt/viskit/viskit_offline
 ./viskit_offline "./datasets/mnist_data.csv" "./labels/mnist_labels.csv" "./graphs/mnist.bin" ./visualization.txt 2500 2 1 1 0 0 0 "force-directed"
 ./viskit_offline "./datasets/mnist_data.csv" "./labels/mnist_labels.csv" "./graphs/mnist.bin" ./visualization.txt
 ```
 
-## Metrics
-Metrics are used to asses and compare quality of dimensionality reduction techniques. Two major aspects are worth to evaluate - the local and global quality of separation. 
+## 3. Metrics
+Metrics are used to asses and compare quality of dimensionality reduction techniques. Two major aspects are worth to include during assesment - the local and global quality of separation.
 
-Currently supported metrics:
-1. `Distance matrix based metric`
+**Implemented Metrics:**
+1. *Distance matrix-based metric*
+2. *Distance matrix-based metric with KMeans optimization*
+3. *KMeans extension of distance matrix based metric*
+4. *Thrustworthiness-based metric*
+5. *Spearman correlation-based metric*
+6. *KNN Gain & DR Quality*
+7. *Sheppard Diagram*
+8. *Co-ranking matrix-based metric*
 
-```python
-from sklearn.manifold import TSNE
-from metrics.distance_matrix_based_metric import DistanceMatrixBasedMetric
+## 4. Extensions
 
+## 5. Documentation
 
-df_mnist = pd.read_csv(
-    './datasets_with_labels/mnist.csv', header=None, nrows=5000
-)
-
-df_mnist_data = df_mnist.iloc[:, :-1]
-df_mnist_labels = df_mnist.iloc[:, -1]
-
-tsne_embedding = TSNE(n_components=2).fit_transform(df_mnist_data.values)
-df_tsne_embedding = pd.DataFrame(data=tsne_embedding)
-
-metric = DistanceMatrixBasedMetric(
-    df_tsne_embedding, df_labels
-)
-
-print(metric.calculate())
-```
-
-2. `KMeans extension of distance matrix based metric` <br>
-Calculation of distances between different classes is optimized by an approximation that mean distances between points from different classes are same as distances between centroids from KMeans.
-
-```python
-from sklearn.manifold import TSNE
-from metrics.distance_matrix_and_kmeans_based_metric import DistanceMatrixAndKMeansBasedMetric
-
-
-df_mnist = pd.read_csv(
-    './datasets_with_labels/mnist.csv', header=None, nrows=5000
-)
-
-df_mnist_data = df_mnist.iloc[:, :-1]
-df_mnist_labels = df_mnist.iloc[:, -1]
-
-tsne_embedding = TSNE(n_components=2).fit_transform(df_mnist_data.values)
-df_tsne_embedding = pd.DataFrame(data=tsne_embedding)
-
-metric = DistanceMatrixAndKMeansBasedMetric(
-    df_tsne_embedding, df_labels
-)
-
-print(metric.calculate())
-```
-
-3. `Thrustworthiness based metric` <br>
-```python
-from sklearn.manifold import TSNE
-from metrics.trustworthiness_based_metric import TrustworthinessBasedMetric
-
-df_mnist = pd.read_csv(
-    './datasets_with_labels/mnist.csv', header=None, nrows=5000
-)
-
-df_mnist_data = df_mnist.iloc[:, :-1]
-
-tsne_embedding = TSNE(n_components=2).fit_transform(df_mnist_data.values)
-df_tsne_embedding = pd.DataFrame(data=tsne_embedding)
-
-metric = TrustworthinessBasedMetric(
-    df_mnist_data, df_tsne_embedding
-)
-
-print(metric.calculate())
-```
-Result:
-
-```python
-{
-    'euclidean': {
-        '5':   0.990,
-        '10':  0.982,
-        '15':  0.976,
-        '30':  0.964,
-        '50':  0.953,
-        '100': 0.933,
-        '150': 0.918,
-        '300': 0.873,
-        '500': 0.822
-    },
-    'cosine': {
-        '5':   0.989,
-        '10':  0.982,
-        '15':  0.978,
-        '30':  0.968,
-        '50':  0.960,
-        '100': 0.945,
-        '150': 0.933,
-        '300': 0.899,
-        '500': 0.854
-    }
-}
-```
+## 6. Authors
+Mateusz Smendowski & Michał Grela
